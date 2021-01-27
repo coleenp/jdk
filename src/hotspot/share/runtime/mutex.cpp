@@ -117,6 +117,7 @@ void Mutex::lock(Thread* self) {
 
   if (!_lock.try_lock()) {
     // The lock is contended, use contended slow-path function to lock
+    add_contentions();
     lock_contended(self);
   }
 
