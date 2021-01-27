@@ -24,6 +24,7 @@
 
 #include "precompiled.hpp"
 #include "logging/log.hpp"
+#include "runtime/atomic.hpp"
 #include "runtime/interfaceSupport.inline.hpp"
 #include "runtime/mutex.hpp"
 #include "runtime/osThread.hpp"
@@ -70,6 +71,14 @@ void Mutex::check_no_safepoint_state(Thread* thread) {
 }
 #endif // ASSERT
 
+void Mutex::add_count() {
+  Atomic::add(&_count, 1);
+}
+
+void Mutex::add_contentions() {
+  Atomic::add(&_contentions, 1);
+}
+
 void Mutex::lock_contended(Thread* self) {
   Mutex *in_flight_mutex = NULL;
   DEBUG_ONLY(int retry_cnt = 0;)
@@ -104,9 +113,11 @@ void Mutex::lock(Thread* self) {
 
   check_safepoint_state(self);
   check_rank(self);
+  add_count();
 
   if (!_lock.try_lock()) {
     // The lock is contended, use contended slow-path function to lock
+    add_contentions();
     lock_contended(self);
   }
 
@@ -129,8 +140,12 @@ void Mutex::lock_without_safepoint_check(Thread * self) {
 
   check_no_safepoint_state(self);
   check_rank(self);
+  add_count();
 
-  _lock.lock();
+  if (!_lock.try_lock()) {
+    add_contentions();
+    _lock.lock();
+  }
   assert_owner(NULL);
   set_owner(self);
 }
@@ -281,7 +296,7 @@ bool is_sometimes_ok(const char* name) {
 }
 
 Mutex::Mutex(int Rank, const char * name, bool allow_vm_block,
-             SafepointCheckRequired safepoint_check_required) : _owner(NULL) {
+             SafepointCheckRequired safepoint_check_required) : _owner(NULL), _count(0), _contentions(0) {
   assert(os::mutex_init_done(), "Too early!");
   if (name == NULL) {
     strcpy(_name, "UNKNOWN");
@@ -315,6 +330,10 @@ void Mutex::print_on_error(outputStream* st) const {
   st->print("[" PTR_FORMAT, p2i(this));
   st->print("] %s", _name);
   st->print(" - owner thread: " PTR_FORMAT, p2i(owner()));
+}
+
+void Mutex::print_counts(outputStream* st) const {
+  st->print("lock=%s\tcount=%d\tcontentions=%d", _name, _count, _contentions);
 }
 
 // ----------------------------------------------------------------------------------

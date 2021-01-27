@@ -701,6 +701,9 @@ const intx ObjectAlignmentInBytes = 8;
           "Allow parallel defineClass requests for class loaders "          \
           "registering as parallel capable")                                \
                                                                             \
+  product(bool, PrintMutexCountsAtExit, false, DIAGNOSTIC,                  \
+          "Print Mutex counts at exit to help find hot locks")              \
+                                                                            \
   product_pd(bool, DontYieldALot,                                           \
           "Throw away obvious excess yield calls")                          \
                                                                             \

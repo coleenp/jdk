@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1998, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -93,6 +93,8 @@ class Mutex : public CHeapObj<mtSynchronizer> {
   os::PlatformMonitor _lock;             // Native monitor implementation
   char _name[MUTEX_NAME_LEN];            // Name of mutex/monitor
 
+  volatile int _count;
+  volatile int _contentions;
   // Debugging fields for naming, deadlock detection, etc. (some only used in debug mode)
 #ifndef PRODUCT
   bool    _allow_vm_block;
@@ -193,6 +195,8 @@ class Mutex : public CHeapObj<mtSynchronizer> {
  private:
   void lock_contended(Thread *thread); // contended slow-path
   bool try_lock_inner(bool do_rank_checks);
+  void add_count();
+  void add_contentions();
  public:
 
   void release_for_safepoint();
@@ -212,6 +216,8 @@ class Mutex : public CHeapObj<mtSynchronizer> {
 
   const char *name() const                  { return _name; }
 
+  int  count() const         { return _count; }
+  void print_counts(outputStream* st) const;
   void print_on_error(outputStream* st) const;
   #ifndef PRODUCT
     void print_on(outputStream* st) const;
