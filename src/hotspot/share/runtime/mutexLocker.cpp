@@ -24,6 +24,7 @@
 
 #include "precompiled.hpp"
 #include "gc/shared/gc_globals.hpp"
+#include "memory/resourceArea.hpp"
 #include "memory/universe.hpp"
 #include "runtime/mutexLocker.hpp"
 #include "runtime/os.inline.hpp"
@@ -389,4 +390,25 @@ void print_owned_locks_on_error(outputStream* st) {
      }
   }
   if (none) st->print_cr("None");
+}
+
+static int lock_compare(Mutex* const &lhs, Mutex* const &rhs) {
+  return lhs->count() > rhs->count() ? -1 : 1;
+}
+
+void print_lock_counts(outputStream* st) {
+  ResourceMark rm;
+  GrowableArray<Mutex*> locks;
+  st->print("Lock counts: ");
+  st->cr();
+  for (int i = 0; i < _num_mutex; i++) {
+     // see if it has been used
+     if (_mutex_array[i]->count() != 0) {
+       locks.insert_sorted<lock_compare>(_mutex_array[i]);
+     }
+  }
+  for (int i = 0; i < locks.length(); i++) {
+    locks.at(i)->print_counts(st);
+    st->cr();
+  }
 }

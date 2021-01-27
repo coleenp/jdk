@@ -93,6 +93,8 @@
 #include "jfr/jfr.hpp"
 #endif
 
+extern void print_lock_counts(outputStream* st);
+
 GrowableArray<Method*>* collected_profiled_methods;
 
 int compare_methods(Method** a, Method** b) {
@@ -329,6 +331,11 @@ void print_statistics() {
   }
 
   ThreadsSMRSupport::log_statistics();
+
+  if (PrintMutexCountsAtExit) {
+    print_lock_counts(tty);
+  }
+
 }
 
 #else // PRODUCT MODE STATISTICS
@@ -375,6 +382,11 @@ void print_statistics() {
   }
 
   ThreadsSMRSupport::log_statistics();
+
+  if (PrintMutexCountsAtExit) {
+    print_lock_counts(tty);
+  }
+
 }
 
 #endif
