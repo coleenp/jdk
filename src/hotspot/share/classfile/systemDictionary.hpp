@@ -337,11 +337,7 @@ private:
   static Klass* resolve_array_class_or_null(Symbol* class_name,
                                             Handle class_loader,
                                             Handle protection_domain, TRAPS);
-  static InstanceKlass* handle_parallel_super_load(Symbol* class_name,
-                                                   Symbol* supername,
-                                                   Handle class_loader,
-                                                   Handle protection_domain,
-                                                   Handle lockObject, TRAPS);
+
   // Wait on SystemDictionary_lock; unlocks lockObject before
   // waiting; relocks lockObject with correct recursion count
   // after waiting, but before reentering SystemDictionary_lock
