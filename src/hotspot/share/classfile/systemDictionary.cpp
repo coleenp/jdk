@@ -334,28 +334,28 @@ Klass* SystemDictionary::resolve_array_class_or_null(Symbol* class_name,
 // Class circularity checking for cases where classloading is delegated to
 // different threads and the classloader lock is released, works like this:
 //
-// Take the case: Base->Super->Base
+// Take the case: Base extends Super extends Base
 //
 //   1. If thread T1 tries to do a defineClass of class Base
-//      resolve_super_or_fail creates placeholder: T1, Base (super Super)
+//      resolve_super_or_fail creates placeholder: T1, Base (extends Super)
 //   2. resolve_instance_class_or_null for Super, does not find dictionary entry
 //      or placeholder, so it tries to load Super
 //   3. If we load the class internally, or user classloader uses the same thread T1
 //      for loadClass through defineClass Super:
-//      3.1 resolve_super_or_fail creates placeholder: T1, Super (super Base)
+//      3.1 resolve_super_or_fail creates placeholder: T1, Super (extends Base)
 //      3.2 resolve_instance_class_or_null for Base
 //      3.3 finds placeholder T1,Base -> throws class circularity
 //
 //OR 4. If T2 tries to resolve Super for loadClass through defineClass Super:
-//      4.1 resolve_super_or_fail creates placeholder: T2, Super (super Base)
-//      4.2 resolve_instance_class_or_null Base, finds placeholder for T1, Base (super Super)
+//      4.1 resolve_super_or_fail creates placeholder: T2, Super (extends Base)
+//      4.2 resolve_instance_class_or_null Base, finds placeholder for T1, Base (extends Super)
 //      4.3.1 if bootclass or non-parallel capable class loader, wait and notify T1 to
 //            complete loading
 //            4.3.1.1 T1 finds T1, Super -> throws class circularity
 //            4.3.1.2 T2 completes loading, gets the same answer
 //      4.3.2 otherwise if parallelCapable class loader call loadClass for Super
 //            4.3.2.1 from loadClass through defineClass, call resolve_super_or_fail Base
-//            4.3.2.2 creates placeholder T2, Base (super Super)
+//            4.3.2.2 creates placeholder T2, Base (extends Super)
 //            4.3.2.3 loadClass through defineClass Base, call resolve_super_or_fail Super
 //            4.3.2.4 finds T2, Super -> throws class circularity
 
@@ -637,8 +637,16 @@ InstanceKlass* SystemDictionary::resolve_instance_class_or_null(Symbol* name,
   //    completes the load and other requestors wait for completion.
   {
     MutexLocker mu(THREAD, SystemDictionary_lock);
-    assert(placeholders()->compute_hash(name) == name_hash, "they're the same hashcode");
-    PlaceholderEntry* oldprobe = placeholders()->get_entry(name_hash, name, loader_data);
+    // Check class loaded under lock first, then check for CCE and concurrent loading.
+    PlaceholderEntry* oldprobe = NULL;
+    InstanceKlass* check = dictionary->find_class(name_hash, name);
+    if (check != NULL) {
+      loaded_class = check;
+    } else {
+      assert(placeholders()->compute_hash(name) == name_hash, "they're the same hashcode");
+      oldprobe = placeholders()->get_entry(name_hash, name, loader_data);
+    }
+
     if (oldprobe != NULL) {
       // Only need check_seen_thread once, not on each loop.
       // If a defineClass is currently in progress and
@@ -665,7 +673,7 @@ InstanceKlass* SystemDictionary::resolve_instance_class_or_null(Symbol* name,
             double_lock_wait(THREAD, lockObject);
           }
           // Check if classloading completed while we were waiting
-          InstanceKlass* check = dictionary->find_class(name_hash, name);
+          check = dictionary->find_class(name_hash, name);
           if (check != NULL) {
             // Klass is already loaded, so just return it
             loaded_class = check;
