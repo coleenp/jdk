@@ -2108,8 +2108,7 @@ Klass* ClassVerifier::load_class(Symbol* name, TRAPS) {
   assert(name_in_supers(name, current_class()), "name should be a super class");
 
   Klass* kls = SystemDictionary::resolve_or_fail(
-    name, Handle(THREAD, loader), Handle(THREAD, protection_domain),
-    true, THREAD);
+    name, Handle(THREAD, loader), true, THREAD);
 
   if (kls != nullptr) {
     if (log_is_enabled(Debug, class, resolve)) {
