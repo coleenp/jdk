@@ -855,7 +855,6 @@ JVM_ENTRY(jclass, JVM_FindClassFromClass(JNIEnv *env, const char *name,
                            ? (Klass*)nullptr
                            : java_lang_Class::as_Klass(from_class_oop);
   oop class_loader = nullptr;
-  oop protection_domain = nullptr;
   if (from_class != nullptr) {
     class_loader = from_class->class_loader();
   }

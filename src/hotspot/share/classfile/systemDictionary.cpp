@@ -2102,12 +2102,10 @@ static bool is_always_visible_class(oop mirror) {
 // N.B.  Code in reflection should use this entry point.
 Handle SystemDictionary::find_java_mirror_for_type(Symbol* signature,
                                                    Klass* accessing_klass,
-                                                   Handle class_loader,
-                                                   Handle protection_domain,
                                                    SignatureStream::FailureMode failure_mode,
                                                    TRAPS) {
-  assert(accessing_klass == nullptr || (class_loader.is_null() && protection_domain.is_null()),
-         "one or the other, or perhaps neither");
+
+  Handle class_loader;
 
   // What we have here must be a valid field descriptor,
   // and all valid field descriptors are supported.

@@ -2101,9 +2101,8 @@ void ClassVerifier::class_format_error(const char* msg, ...) {
 
 Klass* ClassVerifier::load_class(Symbol* name, TRAPS) {
   HandleMark hm(THREAD);
-  // Get current loader and protection domain first.
+  // Get current loader first.
   oop loader = current_class()->class_loader();
-  oop protection_domain = current_class()->protection_domain();
 
   assert(name_in_supers(name, current_class()), "name should be a super class");
 

@@ -235,21 +235,12 @@ public:
                                               TRAPS);
 
   // compute java_mirror (java.lang.Class instance) for a type ("I", "[[B", "LFoo;", etc.)
-  // Either the accessing_klass or the CL/PD can be non-null, but not both.
+  // Either the accessing_klass or the CL can be non-null, but not both.
+  // callee will fill in CL from AK, if they are needed
   static Handle    find_java_mirror_for_type(Symbol* signature,
                                              Klass* accessing_klass,
-                                             Handle class_loader,
-                                             Handle protection_domain,
                                              SignatureStream::FailureMode failure_mode,
                                              TRAPS);
-  static Handle    find_java_mirror_for_type(Symbol* signature,
-                                             Klass* accessing_klass,
-                                             SignatureStream::FailureMode failure_mode,
-                                             TRAPS) {
-    // callee will fill in CL/PD from AK, if they are needed
-    return find_java_mirror_for_type(signature, accessing_klass, Handle(), Handle(),
-                                     failure_mode, THREAD);
-  }
 
   // find a java.lang.invoke.MethodType object for a given signature
   // (asks Java to compute it if necessary, except in a compiler thread)
