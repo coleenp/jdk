@@ -34,7 +34,8 @@
  *          jdk.jartool/sun.tools.jar
  * @run main RedefineClassHelper
  * @compile RedefineSetBreakpoint.java
- * @run main/othervm/native -Xlog:redefine+class+breakpoint=debug -agentlib:RedefineSetBreakpoint -javaagent:redefineagent.jar RedefineSetBreakpoint
+ * @run main/othervm/native -Xlog:redefine+class+breakpoint=debug,redefine+class+iklass+purge=trace,redefine+class+load
+ *                          -agentlib:RedefineSetBreakpoint -javaagent:redefineagent.jar RedefineSetBreakpoint
  */
 
 
