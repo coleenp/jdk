@@ -245,6 +245,7 @@ public final class Class<T> implements java.io.Serializable,
         modifiers = mods;
         protectionDomain = pd;
         primitive = isPrim;
+        rawAccessFlags = 0; // for now
     }
 
     /**
@@ -1008,6 +1009,7 @@ public final class Class<T> implements java.io.Serializable,
     private transient Object classData; // Set by VM
     private transient Object[] signers; // Read by VM, mutable
     private final transient char modifiers;  // Set by the VM
+    private final transient char rawAccessFlags;  // Set by the VM
     private final transient boolean primitive;  // Set by the VM if the Class is a primitive type.
 
     // package-private
@@ -4130,17 +4132,17 @@ public final class Class<T> implements java.io.Serializable,
 
     private native int getClassFileVersion0();
 
-    /*
-     * Return the access flags as they were in the class's bytecode, including
-     * the original setting of ACC_SUPER.
+    /**
+     * {@return the access flags as they were in the class's bytecode, including
+     * the original setting of ACC_SUPER}
      *
      * If the class is an array type then the access flags of the element type is
      * returned.  If the class is a primitive then ACC_ABSTRACT | ACC_FINAL | ACC_PUBLIC.
+     *
+     * @jls 8.1 Class Declarations
+     * @since 26
      */
-    private int getClassAccessFlagsRaw() {
-        Class<?> c = isArray() ? elementType() : this;
-        return c.getClassAccessFlagsRaw0();
+    public int getClassAccessFlagsRaw() {
+        return isArray() ? elementType().getClassAccessFlagsRaw() : rawAccessFlags;
     }
-
-    private native int getClassAccessFlagsRaw0();
 }
