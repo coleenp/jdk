@@ -1382,7 +1382,8 @@ oop java_lang_Class::create_basic_type_mirror(const char* basic_type_name, Basic
   assert(static_oop_field_count(java_class) == 0, "should have been zeroed by allocation");
 #endif
   set_modifiers(java_class, JVM_ACC_ABSTRACT | JVM_ACC_FINAL | JVM_ACC_PUBLIC);
-  set_raw_access_flags(java_class, 0);
+  set_raw_access_flags(java_class, JVM_ACC_ABSTRACT | JVM_ACC_FINAL | JVM_ACC_PUBLIC);
+
   set_is_primitive(java_class);
   return java_class;
 }
